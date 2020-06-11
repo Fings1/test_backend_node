@@ -1,0 +1,38 @@
+{
+  "name": "test_backend_node",
+  "version": "1.0.0",
+  "description": "Test backend node",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "npm run build && node .",
+    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "build": "tsc"
+  },
+  "pre-commit": [
+    "lint"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fings1/test_backend_node.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fings1/test_backend_node/issues"
+  },
+  "homepage": "https://github.com/Fings1/test_backend_node#readme",
+  "dependencies": {
+    "await-to-js": "2.1.1",
+    "express": "4.17.1",
+    "helmet": "3.22.1",
+    "mongoose": "5.9.18"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.6",
+    "@types/mongoose": "5.7.24",
+    "pre-commit": "1.2.2",
+    "tslint": "6.1.2",
+    "typescript": "3.9.5"
+  }
+}
