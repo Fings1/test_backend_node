@@ -191,6 +191,49 @@ const ratingTicket = async (req: IRequest, res: Response) => {
 };
 //#endregion rating ticket
 
+//#region update ticket
+
+/**
+ *  validate roles for update ticket
+ */
+const validateUpteRole = async (req: IRequest, res: Response, next: NextFunction) => {
+  const user = req.user;
+  if (user.role === 'CLIENT' || user.role === 'ADMIN' || user.role === 'WORKER') {
+    return next();
+  }
+
+  return res.status(401).send({ message: 'Invalid role for save a ticket' });
+}
+
+/**
+ *  Validate update ticket params
+ */
+const validateUpdateParams = async (req: IRequest, res: Response, next: NextFunction) => {
+  const params: ITicketData = req.body;
+
+  // Validate params
+  const [error] = await to(schema.updateTicketSchema.validateAsync(params));
+
+  if (error) {
+    return res.status(400).send({ message: `invalid params ${error.message}` });
+  }
+
+  return next();
+}
+
+const updateTicket = async (req: IRequest, res: Response) => {
+  const params: ITicketData = req.body;
+
+  // Update data
+  const [errorUpdate, response] = await to<IDocument, Error>(models.Ticket.update({ _id: params.id }, { params }).exec());
+  if (errorUpdate) {
+    return res.status(500).send({ message: `Query error ${errorUpdate.message}` });
+  }
+
+  return res.status(200).send({ data: response.getData(response) });
+};
+//#endregion update ticket
+
 export default {
   validateParams,
   validateClientAndService,
@@ -200,4 +243,7 @@ export default {
   createTokenAndUrls,
   getTicketData,
   ratingTicket,
+  validateUpteRole,
+  validateUpdateParams,
+  updateTicket
 }

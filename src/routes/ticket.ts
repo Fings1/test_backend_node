@@ -17,6 +17,13 @@ router.post('/createTicket',
   ticketController.createTokenAndUrls,
 );
 
+router.post('/updateTicket',
+  validateAuthToken,
+  ticketController.validateUpteRole,
+  ticketController.validateUpdateParams,
+  ticketController.updateTicket,
+);
+
 router.get('/tracking/:token',
   validateAuthToken,
   ticketController.validateRole,

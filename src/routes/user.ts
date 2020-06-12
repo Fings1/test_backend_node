@@ -26,4 +26,10 @@ router.get('/getWorkers',
   userController.getAllWorkers,
 );
 
+router.get('/getAssignedTickets',
+  validateAuthToken,
+  userController.validateRoleWorker,
+  userController.getAssignedTickets,
+);
+
 export default router;

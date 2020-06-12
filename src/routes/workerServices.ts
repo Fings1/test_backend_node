@@ -15,4 +15,10 @@ router.post('/createWorkerService',
   workerServiceController.saveWorkerService,
 );
 
+router.get('/getWorkerServices',
+  validateAuthToken,
+  workerServiceController.validateRoleWorker,
+  workerServiceController.getWorkerServices,
+);
+
 export default router;

@@ -4,6 +4,7 @@ import to from 'await-to-js';
 import bcryptJs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { forEach } from 'lodash';
+import moment from 'moment-timezone';
 
 // Joi schema
 import schema from './schemaJoi';
@@ -166,6 +167,52 @@ const getAllWorkers = async (req: IRequest, res: Response) => {
 };
 //#endregion get workers
 
+//#region get assigned tickets
+/**
+ *  Validate role for get workers
+ */
+const validateRoleWorker = async (req: IRequest, res: Response, next: NextFunction) => {
+  const user = req.user;
+
+  if (user.role === 'WORKER') {
+    return next();
+  }
+
+  return res.status(401).send({ message: 'Invalid role for get assigned tickets' });
+}
+
+const getAssignedTickets = async (req: IRequest, res: Response) => {
+  const user = req.user;
+  const currentDate = moment().tz('America/Bogota').format();
+  const lastDateOfDay = moment().tz('America/Bogota').endOf('day').format();
+
+  // Get all assigned tickets current date from DB
+  const [errorQuery, response] = await to<IDocument[], Error>(models.Ticket
+    .find(
+      { workerId: user.sub }
+    )
+    .and([
+      {
+        date: { $gte: currentDate }
+      },
+      {
+        date: { $lte: lastDateOfDay }
+      },
+    ]).exec());
+
+  if (errorQuery) {
+    return res.status(500).send({ message: `Query error ${errorQuery.message}` });
+  }
+
+  const tickets: ITicketData[] = [];
+  forEach(response, (value) => {
+    tickets.push(value.getData(value))
+  })
+
+  return res.status(200).send({ data: tickets });
+};
+//#endregion get assigned tickets
+
 export default {
   validateLoginParams,
   validatePassword,
@@ -175,5 +222,7 @@ export default {
   encryptPassword,
   saveUser,
   validateRole,
-  getAllWorkers
+  getAllWorkers,
+  validateRoleWorker,
+  getAssignedTickets
 }

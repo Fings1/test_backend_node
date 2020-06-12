@@ -80,11 +80,47 @@ const saveWorkerService = async (req: IRequest, res: Response) => {
 
   return res.status(200).send({ data: response.getData(response) });
 };
-//#endregion create service
+//#endregion create worker service
+
+
+//#region get worker services
+
+/**
+ *  Validate role for get worker service
+ */
+const validateRoleWorker = async (req: IRequest, res: Response, next: NextFunction) => {
+  const user = req.user;
+
+  if (user.role === 'WORKER') {
+    return next();
+  }
+
+  return res.status(401).send({ message: 'Invalid role for get worker services' });
+}
+
+const getWorkerServices = async (req: IRequest, res: Response) => {
+  const user = req.user;
+
+  // Get worker services from DB
+  const [errorQuery, response] = await to<IDocument[], Error>(models.WorkerService.find({ workerId: user.sub }).exec());
+  if (errorQuery) {
+    return res.status(500).send({ message: `Query error ${errorQuery.message}` });
+  }
+
+  const workerServices: IWorkerServiceData[] = [];
+  forEach(response, (value) => {
+    workerServices.push(value.getData(value))
+  })
+
+  return res.status(200).send({ data: workerServices });
+};
+//#endregion get worker services
 
 export default {
   validateParams,
   validateRole,
   validateWorkerAndServiceIds,
   saveWorkerService,
+  validateRoleWorker,
+  getWorkerServices
 }
