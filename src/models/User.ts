@@ -1,11 +1,11 @@
 // Libraries
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 // Define schema
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-  firstName: String,
+  firstName: { type: String, required: true },
   lastName: String,
   userType: {
     type: String,
@@ -14,8 +14,21 @@ const userSchema = new Schema({
   },
   phone: String,
   email: String,
-  password: String,
-  dni: { type: String, unique: true }
-})
+  password: { type: String, required: true },
+  dni: { type: String, unique: true, required: true }
+});
+
+// Get sanitize data
+userSchema.methods.getData = (doc: Document) => {
+  const data = doc.toJSON();
+  data.id = data._id;
+
+  delete data._id;
+  delete data.__v;
+  delete data.password;
+
+  return data;
+}
+
 
 export default mongoose.model('User', userSchema);
