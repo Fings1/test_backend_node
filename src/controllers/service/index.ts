@@ -1,6 +1,7 @@
 // Libraries
 import { Response, NextFunction } from 'express';
 import to from 'await-to-js';
+import { forEach } from 'lodash';
 
 // Joi schema
 import schema from './schemaJoi';
@@ -13,7 +14,7 @@ import models from '../../models';
 /**
  *  Validate create service params
  */
-const validateCreateService = async (req: IRequest, res: Response, next: NextFunction) => {
+const validateParams = async (req: IRequest, res: Response, next: NextFunction) => {
   const params: IServiceData = req.body;
 
   // Validate params
@@ -51,12 +52,26 @@ const saveService = async (req: IRequest, res: Response) => {
   return res.status(200).send({ data: response.getData(response) });
 };
 
+const getAllServices = async (req: IRequest, res: Response) => {
+  // Get services from DB
+  const [errorQuery, response] = await to<IDocument[], Error>(models.Service.find({}).exec());
+  if (errorQuery) {
+    return res.status(500).send({ message: `Query error ${errorQuery.message}` });
+  }
+
+  const services: IServiceData[] = [];
+  forEach(response, (value) => {
+    services.push(value.getData(value))
+  })
+
+  return res.status(200).send({ data: services });
+};
+
 //#endregion create service
 
 export default {
-  service: {
-    validateCreateService,
-    validateRole,
-    saveService,
-  },
+  validateParams,
+  validateRole,
+  saveService,
+  getAllServices,
 }

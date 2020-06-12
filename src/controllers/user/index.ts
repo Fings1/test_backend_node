@@ -3,6 +3,7 @@ import { Response, NextFunction } from 'express';
 import to from 'await-to-js';
 import bcryptJs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { forEach } from 'lodash';
 
 // Joi schema
 import schema from './schemaJoi';
@@ -135,16 +136,44 @@ const saveUser = async (req: IRequest, res: Response) => {
 
 //#endregion Register
 
-export default {
-  login: {
-    validateLoginParams,
-    validatePassword,
-    createToken
-  },
-  register: {
-    validateRegisterParams,
-    validateUserType,
-    encryptPassword,
-    saveUser
+//#region get workers
+/**
+ *  Validate role for get workers
+ */
+const validateRole = async (req: IRequest, res: Response, next: NextFunction) => {
+  const user = req.user;
+
+  if (user.role === 'ADMIN') {
+    return next();
   }
+
+  return res.status(401).send({ message: 'Invalid role for get all workers' });
+}
+
+const getAllWorkers = async (req: IRequest, res: Response) => {
+  // Get all workers from DB
+  const [errorQuery, response] = await to<IDocument[], Error>(models.User.find({ userType: 'WORKER' }).exec());
+  if (errorQuery) {
+    return res.status(500).send({ message: `Query error ${errorQuery.message}` });
+  }
+
+  const workers: IUserData[] = [];
+  forEach(response, (value) => {
+    workers.push(value.getData(value))
+  })
+
+  return res.status(200).send({ data: workers });
+};
+//#endregion get workers
+
+export default {
+  validateLoginParams,
+  validatePassword,
+  createToken,
+  validateRegisterParams,
+  validateUserType,
+  encryptPassword,
+  saveUser,
+  validateRole,
+  getAllWorkers
 }

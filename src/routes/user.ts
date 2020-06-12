@@ -3,20 +3,27 @@ import express from 'express';
 
 // Controller
 import userController from '../controllers/user';
+import { validateAuthToken } from '../controllers/utils';
 
 const router = express.Router();
 
 router.post('/register',
-  userController.register.validateRegisterParams,
-  userController.register.validateUserType,
-  userController.register.encryptPassword,
-  userController.register.saveUser
+  userController.validateRegisterParams,
+  userController.validateUserType,
+  userController.encryptPassword,
+  userController.saveUser
 );
 
 router.post('/login',
-  userController.login.validateLoginParams,
-  userController.login.validatePassword,
-  userController.login.createToken
+  userController.validateLoginParams,
+  userController.validatePassword,
+  userController.createToken
+);
+
+router.get('/getWorkers',
+  validateAuthToken,
+  userController.validateRole,
+  userController.getAllWorkers,
 );
 
 export default router;

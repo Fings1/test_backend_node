@@ -15,7 +15,7 @@ export const validateAuthToken = async (req: IRequest, res: Response, next: Next
     return res.status(401).send({ message: 'The token is missing' });
   }
 
-  const [error, user] = await to<IUserToken, Error>(verifyToken(token));
+  const [error, user] = await to<IUserToken, Error>(verifyToken(token, tokenSecret));
 
   if (error) {
     return res.status(401).send({ message: 'Invalid token' });
@@ -29,9 +29,9 @@ export const validateAuthToken = async (req: IRequest, res: Response, next: Next
 /**
  * verify token with jwt
  */
-const verifyToken = (token: string): Promise<IUserToken> => {
+export const verifyToken = (token: string, secret: string): Promise<any> => {
   return new Promise((resolve, reject) => {
-    jwt.verify(token, tokenSecret, (error, user: IUserToken) => {
+    jwt.verify(token, secret, (error, user) => {
       if (error) {
         return reject(error);
       }

@@ -9,9 +9,15 @@ const router = express.Router();
 
 router.post('/createService',
   validateAuthToken,
-  serviceController.service.validateRole,
-  serviceController.service.validateCreateService,
-  serviceController.service.saveService,
+  serviceController.validateRole,
+  serviceController.validateParams,
+  serviceController.saveService,
+);
+
+router.get('/getServices',
+  validateAuthToken,
+  serviceController.validateRole,
+  serviceController.getAllServices,
 );
 
 export default router;
