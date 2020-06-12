@@ -26,7 +26,7 @@ export const initApp = async () => {
   app.use(helmet());
 
   // Routes
-  app.use('/user', routes.userRoutes);
+  app.use('/api/v1', routes);
 
   app.get('/healthcheck', async (req, res) => {
     res.status(200).send('OK');

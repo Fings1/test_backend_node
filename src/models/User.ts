@@ -1,5 +1,8 @@
 // Libraries
-import mongoose, { Document } from 'mongoose';
+import mongoose from 'mongoose';
+
+// Utils
+import { getData } from './utils';
 
 // Define schema
 const Schema = mongoose.Schema;
@@ -19,16 +22,7 @@ const userSchema = new Schema({
 });
 
 // Get sanitize data
-userSchema.methods.getData = (doc: Document) => {
-  const data = doc.toJSON();
-  data.id = data._id;
-
-  delete data._id;
-  delete data.__v;
-  delete data.password;
-
-  return data;
-}
+userSchema.methods.getData = getData;
 
 
 export default mongoose.model('User', userSchema);

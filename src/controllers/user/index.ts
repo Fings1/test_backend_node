@@ -1,7 +1,8 @@
 // Libraries
-import { Request, Response } from 'express';
+import { Response, NextFunction } from 'express';
 import to from 'await-to-js';
 import bcryptJs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 // Joi schema
 import schema from './schemaJoi';
@@ -9,10 +10,14 @@ import schema from './schemaJoi';
 // Models
 import models from '../../models';
 
+const tokenSecret = process.env.TOKEN_SECRET || 'qwer';
+
+//#region Login
+
 /**
- * Controller for validate user access
+ *  Validate login params
  */
-export const login = async (req: Request, res: Response) => {
+const validateLoginParams = async (req: IRequest, res: Response, next: NextFunction) => {
   const params: IUserData = req.body;
 
   // Validate params
@@ -21,6 +26,15 @@ export const login = async (req: Request, res: Response) => {
   if (error) {
     return res.status(400).send({ message: `invalid params ${error.message}` });
   }
+
+  return next();
+}
+
+/**
+ * Validate password for the user
+ */
+const validatePassword = async (req: IRequest, res: Response, next: NextFunction) => {
+  const params: IUserData = req.body;
 
   // get user from DB
   const [errorQuery, response] = await to<IDocument, Error>(models.User.findOne({ dni: params.dni }).exec());
@@ -37,13 +51,32 @@ export const login = async (req: Request, res: Response) => {
     return res.status(400).send({ message: 'invalid password' });
   }
 
-  return res.status(200).send({ data: response.getData(response), token: "TEST" });
+  req.data = response.getData(response);
+
+  return next();
 };
 
+const createToken = async (req: IRequest, res: Response) => {
+  const data: IUserData = req.data;
+
+  const tokenDate = {
+    sub: data.id,
+    name: `${data.firstName} ${data.lastName || ''}`,
+    role: data.userType,
+  }
+
+  const accessToken = jwt.sign(tokenDate, tokenSecret, { expiresIn: '1d' });
+
+  return res.status(200).send({ accessToken });
+}
+//#endregion Login
+
+//#region Register
+
 /**
- * Controller for valdiate aprams and register user
+ *  Validate Register user params
  */
-export const register = async (req: Request, res: Response) => {
+const validateRegisterParams = async (req: IRequest, res: Response, next: NextFunction) => {
   const params: IUserData = req.body;
 
   // Validate params
@@ -53,11 +86,28 @@ export const register = async (req: Request, res: Response) => {
     return res.status(400).send({ message: `invalid params ${error.message}` });
   }
 
-  const validUserType = validateUserType(params.userType);
+  return next();
+}
 
-  if (!validUserType) {
+/**
+ * Validate user type value
+ */
+const validateUserType = async (req: IRequest, res: Response, next: NextFunction) => {
+  const params: IUserData = req.body;
+  const validUserTypes: UserTypes[] = ['ADMIN', 'CLIENT', 'WORKER'];
+
+  if (!validUserTypes.includes(params.userType)) {
     return res.status(400).send({ message: `invalid userType` });
   }
+
+  return next();
+}
+
+/**
+ * Set encrypt password
+ */
+const encryptPassword = async (req: IRequest, res: Response, next: NextFunction) => {
+  const params: IUserData = req.body;
 
   // Hash password
   const [errorHash, passwordHash] = await to(bcryptJs.hash(params.password, 10));
@@ -68,6 +118,12 @@ export const register = async (req: Request, res: Response) => {
   // Set hash password to params
   params.password = passwordHash;
 
+  return next();
+}
+
+const saveUser = async (req: IRequest, res: Response) => {
+  const params: IUserData = req.body;
+
   // Save user in DB
   const [errorSave, response] = await to<IDocument, Error>(models.User.create(params));
   if (errorSave) {
@@ -77,12 +133,18 @@ export const register = async (req: Request, res: Response) => {
   return res.status(200).send({ data: response.getData(response) });
 };
 
-const validateUserType = (userType: UserTypes) => {
-  const validUserTypes: UserTypes[] = ['ADMIN', 'CLIENT', 'WORKER'];
+//#endregion Register
 
-  if (validUserTypes.includes(userType)) {
-    return true;
+export default {
+  login: {
+    validateLoginParams,
+    validatePassword,
+    createToken
+  },
+  register: {
+    validateRegisterParams,
+    validateUserType,
+    encryptPassword,
+    saveUser
   }
-
-  return false;
 }
