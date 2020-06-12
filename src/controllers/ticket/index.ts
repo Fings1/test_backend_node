@@ -95,7 +95,7 @@ const getRandomWorker = async (req: IRequest, res: Response, next: NextFunction)
   }
 
   const ramdomWorkers = shuffle(response);
-  params.workerId = ramdomWorkers[0].id;
+  params.workerId = ramdomWorkers[0].toJSON().workerId;
 
   return next();
 };
@@ -129,7 +129,7 @@ const createTokenAndUrls = async (req: IRequest, res: Response) => {
 
   const accessToken = jwt.sign(tokenDate, ticketTokenSecret);
   const trackingLink = `http://localhost:8000/api/v1/ticket/tracking/${accessToken}`;
-  const ratingLink = `http://localhost:8000/api/v1/ticket/rating/${accessToken}`;
+  const ratingLink = `http://localhost:8000/api/v1/ticket/rating/${accessToken}/yourRating`;
 
   return res.status(200).send({ ticketToken: accessToken, trackingLink, ratingLink })
 };
@@ -141,7 +141,7 @@ const createTokenAndUrls = async (req: IRequest, res: Response) => {
  *  Get all ticket info
  */
 const getTicketData = async (req: IRequest, res: Response) => {
-  const token: string = req.param('token');
+  const token: string = req.params.token;
 
   if (!token) {
     return res.status(401).send({ message: 'Missing token' });
@@ -153,7 +153,7 @@ const getTicketData = async (req: IRequest, res: Response) => {
     return res.status(401).send({ message: 'Invalid token' });
   }
 
-  const [errorQuery, response] = await to<IDocument, Error>(models.Ticket.findById(ticket.id).populate('User').exec());
+  const [errorQuery, response] = await to<IDocument, Error>(models.Ticket.findById(ticket.id).exec());
   if (errorQuery) {
     return res.status(500).send({ message: `Query error ${errorQuery.message}` });
   }
@@ -168,8 +168,8 @@ const getTicketData = async (req: IRequest, res: Response) => {
  *  Set rating to ticket
  */
 const ratingTicket = async (req: IRequest, res: Response) => {
-  const token: string = req.param('token');
-  const rating: number = Number(req.param('rating'));
+  const token: string = req.params.token;
+  const rating: number = Number(req.params.rating);
 
   if (!token || !rating) {
     return res.status(401).send({ message: 'Missing params' });
@@ -182,12 +182,12 @@ const ratingTicket = async (req: IRequest, res: Response) => {
   }
 
   // Update data
-  const [errorUpdate, response] = await to<IDocument, Error>(models.Ticket.update({ _id: ticket.id }, { rating }).exec());
+  const [errorUpdate] = await to<IDocument, Error>(models.Ticket.updateOne({ _id: ticket.id }, { rating }).exec());
   if (errorUpdate) {
     return res.status(500).send({ message: `Query error ${errorUpdate.message}` });
   }
 
-  return res.status(200).send({ data: response.getData(response) });
+  return res.status(200).send({ message: 'Ticket updated' });
 };
 //#endregion rating ticket
 
@@ -225,12 +225,12 @@ const updateTicket = async (req: IRequest, res: Response) => {
   const params: ITicketData = req.body;
 
   // Update data
-  const [errorUpdate, response] = await to<IDocument, Error>(models.Ticket.update({ _id: params.id }, { params }).exec());
+  const [errorUpdate] = await to<IDocument, Error>(models.Ticket.update({ _id: params.id }, { params }).exec());
   if (errorUpdate) {
     return res.status(500).send({ message: `Query error ${errorUpdate.message}` });
   }
 
-  return res.status(200).send({ data: response.getData(response) });
+  return res.status(200).send({ message: 'Ticket updated' });
 };
 //#endregion update ticket
 
