@@ -11,9 +11,9 @@ const ticketSchema = new Schema({
     enum: ['CREATED', 'ASSIGNED', 'IN_PROGRESS', 'FINISHED'],
     default: 'CREATED'
   },
-  clientId: Schema.Types.ObjectId,
-  workerId: Schema.Types.ObjectId,
-  serviceId: Schema.Types.ObjectId,
+  clientId: { type: Schema.Types.ObjectId, ref: 'User' },
+  workerId: { type: Schema.Types.ObjectId, ref: 'User' },
+  serviceId: { type: Schema.Types.ObjectId, ref: 'User' },
   rating: Number,
   address: String,
   latitude: Number,

@@ -5,8 +5,8 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const workerServiceSchema = new Schema({
-  workerId: Schema.Types.ObjectId,
-  serviceId: Schema.Types.ObjectId,
+  workerId: { type: Schema.Types.ObjectId, ref: 'User' },
+  serviceId: { type: Schema.Types.ObjectId, ref: 'Service' },
 })
 
 export default mongoose.model('WorkerService', workerServiceSchema);

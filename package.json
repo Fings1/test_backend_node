@@ -28,9 +28,10 @@
     "bcryptjs": "2.4.3",
     "body-parser": "1.19.0",
     "express": "4.17.1",
+    "express-mongo-sanitize": "2.0.0",
     "helmet": "3.22.1",
-    "mongoose": "5.9.18",
-    "express-mongo-sanitize": "2.0.0"
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "5.9.18"
   },
   "devDependencies": {
     "@types/bcryptjs": "2.4.2",
